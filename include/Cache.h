@@ -6,6 +6,11 @@
 
 #include <array>
 
+
+// general data size idea:
+// addresses = u32
+// actual byte data = u8
+
 // total lines = 64 sets * 4 ways = 256 cache lines
 // each cache line of size = 64
 // memory address = 32
@@ -15,6 +20,8 @@ const u8 CACHE_LINE_SIZE = 64;        // 64-byte cache lines
 const u32 CACHE_SETS = 64;            // Cache with 64 sets
 const u8 CACHE_WAYS = 4;              // 4-way set associative cache 
 
+
+// MEMORY ADDRESS = [TAG | SET INDEX | BYTE OFFSET]
 const u8 CACHE_LINE_BYTE_OFFSET_SIZE = 6;
 const u8 CACHE_LINE_SET_INDEX_SIZE = 6;
 const u8 CACHE_LINE_TAG_SIZE = 20;
