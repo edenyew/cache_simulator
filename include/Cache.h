@@ -48,7 +48,23 @@ struct AddressParts
   AddressParts(u32 address)
   {
     byteOffset = address & (CACHE_LINE_SIZE - 1);
+    setIndex = (address >> CACHE_LINE_BYTE_OFFSET_SIZE) & ((1 << CACHE_LINE_SET_INDEX_SIZE) - 1);
+    tag = address >> (CACHE_LINE_BYTE_OFFSET_SIZE + CACHE_LINE_SET_INDEX_SIZE);
   }
+};
+
+class CacheSet
+{
+public:
+  CacheSet();
+  ~CacheSet();
+
+  CacheLine* Find(u32 tag);
+  CacheLine* Replace(u32 tag, u8* sourceData);
+
+private:
+  std::array<CacheLine, CACHE_WAYS> lines;   // Array of caches lines 
+  RandomReplacement replacement;             // Random replacement algorithm
 };
 
 class Cache
