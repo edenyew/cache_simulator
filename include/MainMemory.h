@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include "types.h"
 
@@ -15,8 +16,8 @@ public:
   MainMemory();
   ~MainMemory();
 
-  void Read(u32 startAddress, u8 size, u8* destination);
-  void Write(u32 startAddress, u8 size, u8* source);
-  void Print();
+  void Read(u32 startAddress, u32 size, u8* destination);
+  void Write(u32 startAddress, u32 size, const u8* source);
+  void Print(u32 startAddress = 0, u32 bytesToPrint = 288);
   
 };

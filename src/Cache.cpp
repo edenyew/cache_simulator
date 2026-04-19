@@ -1,4 +1,7 @@
-# include "Cache.h"
+#include "Cache.h"
+#include <string>
+#include <format>
+#include <iostream>
 
 CacheSet::CacheSet()
 {
@@ -54,6 +57,13 @@ u32 Cache::Read(u32 address)
 
   if (line) // cache hit
   {
+    std::string message = std::format(
+      "Reading from cache (address: 0x{:x}, set: {}, tag: {})",
+      address, static_cast<u32>(addressParts.setIndex), addressParts.tag
+    );
+
+    std::cout << message << std::endl;
+
     // Reinterpret the memory as a 32-bit integer
     return *reinterpret_cast<u32*>(&line->data[addressParts.byteOffset]);
   }
@@ -84,12 +94,36 @@ void Cache::Write(u32 address, u32 data)
 
   CacheLine* line = sets[addressParts.setIndex].Find(addressParts.tag);
 
+  std::cout << std::format(
+    "Writing to cache (address: 0x{:x}, set: {}, tag: {})",
+    address, static_cast<u32>(addressParts.setIndex), addressParts.tag
+  ) << std::endl;
+
   if (line) // Cache hit
   {
-    // Reinterpret the cache memory as a 32-bit integer and write the data
+    // Cache hit:
+    // write the 32-bit data directly into the cache line at the byte offset.
+    *reinterpret_cast<u32*>(&line->data[addressParts.byteOffset]) = data;
+  }
+  else // Cache miss
+  {
+    // Find the beginning of the cache line that this address belongs to.
+    u32 lineStart = address & ~(CACHE_LINE_SIZE - 1);
+
+    // Allocate a temporary 64-byte buffer for the full cache line.
+    std::array<u8, CACHE_LINE_SIZE> buffer;
+
+    // Read the full cache line from main memory into the buffer.
+    mainMemory->Read(lineStart, CACHE_LINE_SIZE, buffer.data());
+
+    // Replace one line in the target set with this fetched data (write-allocate).
+    line = sets[addressParts.setIndex].Replace(addressParts.tag, buffer.data());
+
+    // Now write the 32-bit value into the new cache line at the byte offset.
     *reinterpret_cast<u32*>(&line->data[addressParts.byteOffset]) = data;
   }
 
   // Write - through cache (immediately write modified data to main memory)
-  mainMemory->Write(address, sizeof(u32), reinterpret_cast<u8*>(&data));
+  std::cout << std::format("Writing to main memory (address: 0x{:x})", address) << std::endl;
+  mainMemory->Write(address, sizeof(u32), reinterpret_cast<const u8*>(&data));
 }
