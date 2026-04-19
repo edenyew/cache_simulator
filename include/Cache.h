@@ -8,8 +8,8 @@
 
 
 // general idea for data size:
-// addresses = u32
-// actual byte data = u8
+// addresses = u32  --> address-related because it likely exceeds 255
+// actual byte data = u8 --> guaranteed to be [0, 255]
 
 // total lines = 64 sets * 4 ways = 256 cache lines
 // each cache line of size = 64 bytes
@@ -69,5 +69,12 @@ private:
 
 class Cache
 {
+public:
+  void Initialise(MainMemory* memory);
+  u32 Read(u32 address);
+  void Write(u32 address, u32 data);
 
+private:
+  std::array<CacheSet, CACHE_SETS> sets;      // Array of Cache Sets
+  MainMemory* mainMemory;                     // Link to main memory
 };
